@@ -7,11 +7,15 @@ import urllib.parse
 # Library imports
 import requests
 
-def yoink(version: str, book: str, chapter: str, verse: int = -1, verseRange: Tuple[int, int] = None) -> str:
+def yoink(version: str, book: str, chapter: str, verses: List[int] = None) -> str:
     html = download_reference_html(f"{book} {chapter}", version)
-    # TODO: regardless, remove all verse numbers here. 
     chapterText = extract_reference_text(html)
-    return extract_verses(chapterText, [(5, 10)])
+
+    if(verses != None):
+        return extract_verses(chapterText, verses)
+    else:
+        # TODO: verify that this is working 
+        return extract_verses(chapterText)
 
 
 def download_reference_html(verse_ref: str, version: str) -> str:
@@ -49,7 +53,6 @@ def extract_verses(text, verses):
     combined_text = ' '.join(extracted_verses)
     return combined_text
 
-# TODO: remove all verse 
 
 def extract_reference_text(html: str) -> str:
     """Given HTML from BG, pull out just the Scripture text and keeps verse numbers."""
@@ -72,9 +75,9 @@ def extract_reference_text(html: str) -> str:
     verse_text = re.sub(r'<span[^>]*class=["\']chapternum["\'][^>]*>(.*?)</span>', 'VERSE-1 ', verse_text, flags=re.IGNORECASE)
     # Remove <sup> tags with class 'versenum' and keep the number inside
     verse_text = re.sub(r'<sup[^>]*class=["\']versenum["\'][^>]*>(.*?)</sup>', r'VERSE-\1', verse_text, flags=re.IGNORECASE)
-    verse_text = re.sub(r"<sup (.*?)</sup>", "", verse_text)
 
     # Scrub metadata
+    verse_text = re.sub(r"<sup (.*?)</sup>", "", verse_text)
     verse_text = re.sub(r'<div [^>]+>', '', verse_text)
     verse_text = re.sub(r'<h3>.*?</h3>', '', verse_text)
     verse_text = re.sub(r'<p[^>]*>', '', verse_text)
@@ -89,6 +92,8 @@ def extract_reference_text(html: str) -> str:
 
     verse_text = re.sub(r'<br[^>]*>', ' ', verse_text)
     verse_text = re.sub(r'&nbsp;', ' ', verse_text)
+
+    # TODO: figure out why this is not working. 
     verse_text = re.sub(r'\s+', ' ', verse_text)  # Replace multiple spaces with a single space
     verse_text = verse_text.strip()
 
@@ -97,4 +102,4 @@ def extract_reference_text(html: str) -> str:
 
 
 # print(extract_reference_text(download_reference_html()))
-print(yoink("NKJV", "Genesis", "2"))
+print(yoink("NKJV", "Genesis", "1", verses=[1, 3]))
