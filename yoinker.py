@@ -9,9 +9,9 @@ import requests
 
 def yoink(version: str, book: str, chapter: str, verse: int = -1, verseRange: Tuple[int, int] = None) -> str:
     html = download_reference_html(f"{book} {chapter}", version)
-    # TODO: add filter method here based on what the value of verses is. 
     # TODO: regardless, remove all verse numbers here. 
-    return extract_reference_text(html)
+    chapterText = extract_reference_text(html)
+    return extract_verses(chapterText, [(5, 10)])
 
 
 def download_reference_html(verse_ref: str, version: str) -> str:
@@ -31,10 +31,25 @@ def download_reference_html(verse_ref: str, version: str) -> str:
     return response.text
 
 
-# TODO: add filter method here. 
+def extract_verses(text, verses):
+    # Split the text into individual verses
+    verse_list = text.split('VERSE-')[1:]  # Ignore the first empty split
+    verses_dict = {int(verse.split(' ', 1)[0]): verse.split(' ', 1)[1] for verse in verse_list}
+
+    extracted_verses = []
+
+    for verse in verses:
+        if isinstance(verse, int):  # If a single verse is provided
+            extracted_verses.append(verses_dict.get(verse, f"Verse {verse} not found."))
+        elif isinstance(verse, tuple) and len(verse) == 2:  # If a range of verses is provided
+            start, end = verse
+            for v in range(start, end + 1):
+                extracted_verses.append(verses_dict.get(v, f"Verse {v} not found."))
+
+    combined_text = ' '.join(extracted_verses)
+    return combined_text
 
 # TODO: remove all verse 
-
 
 def extract_reference_text(html: str) -> str:
     """Given HTML from BG, pull out just the Scripture text and keeps verse numbers."""
@@ -58,6 +73,7 @@ def extract_reference_text(html: str) -> str:
 
     # Remove <sup> tags with class 'versenum' and keep the number inside
     verse_text = re.sub(r'<sup[^>]*class=["\']versenum["\'][^>]*>(.*?)</sup>', r'VERSE-\1', verse_text, flags=re.IGNORECASE)
+    verse_text = re.sub(r"<sup (.*?)</sup>", "", verse_text)
 
     # Scrub metadata
     verse_text = re.sub(r'<div [^>]+>', '', verse_text)
@@ -78,4 +94,4 @@ def extract_reference_text(html: str) -> str:
 
 
 # print(extract_reference_text(download_reference_html()))
-print(yoink("KJV", "Genesis", "2"))
+print(yoink("NKJV", "Genesis", "2"))
