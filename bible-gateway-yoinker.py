@@ -35,7 +35,9 @@ def download_reference_html(verse_ref: str, version: str) -> str:
     return response.text
 
 
-def extract_verses(text, verses):
+# TODO: update this to just handle verses being a list of integers.
+#  just populate verses correctly if they give a verse range using a for-loop
+def extract_verses(text, verses = -1):
     # Split the text into individual verses
     verse_list = text.split('VERSE-')[1:]  # Ignore the first empty split
     verses_dict = {int(verse.split(' ', 1)[0]): verse.split(' ', 1)[1] for verse in verse_list}
