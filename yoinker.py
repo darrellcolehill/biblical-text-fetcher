@@ -1,5 +1,5 @@
 # Standard imports
-from typing import List, Set
+from typing import List, Set, Tuple
 import logging
 import re
 import urllib.parse
@@ -7,9 +7,10 @@ import urllib.parse
 # Library imports
 import requests
 
-
-def yoink(verse_ref: str, version: str) -> str:
-    html = download_reference_html(verse_ref, version)
+def yoink(version: str, book: str, chapter: str, verse: int = -1, verseRange: Tuple[int, int] = None) -> str:
+    html = download_reference_html(f"{book} {chapter}", version)
+    # TODO: add filter method here based on what the value of verses is. 
+    # TODO: regardless, remove all verse numbers here. 
     return extract_reference_text(html)
 
 
@@ -28,6 +29,11 @@ def download_reference_html(verse_ref: str, version: str) -> str:
     # Done.
     logging.debug(response.text)
     return response.text
+
+
+# TODO: add filter method here. 
+
+# TODO: remove all verse 
 
 
 def extract_reference_text(html: str) -> str:
