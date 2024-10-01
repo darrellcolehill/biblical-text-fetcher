@@ -8,14 +8,19 @@ import urllib.parse
 import requests
 
 
-def download_reference_html(verse_ref: str = "", translation: str = "") -> str:
+def yoink(verse_ref: str, version: str) -> str:
+    html = download_reference_html(verse_ref, version)
+    return extract_reference_text(html)
+
+
+def download_reference_html(verse_ref: str, version: str) -> str:
     """Pulls HTML from BibleGateway"""
 
     # Encode the verse ref so we can pass it to gateway
     verse_ref_encoded = urllib.parse.quote(verse_ref)
 
     # Construct url
-    url = f"https://www.biblegateway.com/passage/?search=Genesis%201&version=KJV"
+    url = f"https://www.biblegateway.com/passage/?search={verse_ref_encoded}&version={version}"
 
     # Pull page from gateway
     response = requests.get(url, timeout=10)
@@ -26,7 +31,7 @@ def download_reference_html(verse_ref: str = "", translation: str = "") -> str:
 
 
 def extract_reference_text(html: str) -> str:
-    """Given HTML from BG, pull out just the Scripture text."""
+    """Given HTML from BG, pull out just the Scripture text and keeps verse numbers."""
 
     # Use a regex pattern to find the correct content div
     match = re.search(
@@ -63,5 +68,5 @@ def extract_reference_text(html: str) -> str:
     return verse_text
 
 
-print("getting text")
-print(extract_reference_text(download_reference_html()))
+# print(extract_reference_text(download_reference_html()))
+print(yoink("Genesis 2", "KJV"))
