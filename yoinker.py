@@ -53,8 +53,11 @@ def extract_reference_text(html: str) -> str:
     # Get the verse text from the match
     verse_text = match.group(1).strip()
 
-    # Remove all other <sup> tags and keep only the number inside
-    verse_text = re.sub(r'<sup[^>]*>(.*?)</sup>', r'\1', verse_text, flags=re.IGNORECASE)
+    # Remove <sup> tags with class 'chapternum' and replace with '1'
+    verse_text = re.sub(r'<span[^>]*class=["\']chapternum["\'][^>]*>(.*?)</span>', '1 ', verse_text, flags=re.IGNORECASE)
+
+    # Remove <sup> tags with class 'versenum' and keep the number inside
+    verse_text = re.sub(r'<sup[^>]*class=["\']versenum["\'][^>]*>(.*?)</sup>', r'\1', verse_text, flags=re.IGNORECASE)
 
     # Scrub metadata
     verse_text = re.sub(r'<div [^>]+>', '', verse_text)
@@ -75,4 +78,4 @@ def extract_reference_text(html: str) -> str:
 
 
 # print(extract_reference_text(download_reference_html()))
-print(yoink("Genesis 2", "KJV"))
+print(yoink("KJV", "Genesis", "2"))
