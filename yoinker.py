@@ -70,7 +70,6 @@ def extract_reference_text(html: str) -> str:
 
     # Remove <sup> tags with class 'chapternum' and replace with '1'
     verse_text = re.sub(r'<span[^>]*class=["\']chapternum["\'][^>]*>(.*?)</span>', 'VERSE-1 ', verse_text, flags=re.IGNORECASE)
-
     # Remove <sup> tags with class 'versenum' and keep the number inside
     verse_text = re.sub(r'<sup[^>]*class=["\']versenum["\'][^>]*>(.*?)</sup>', r'VERSE-\1', verse_text, flags=re.IGNORECASE)
     verse_text = re.sub(r"<sup (.*?)</sup>", "", verse_text)
@@ -84,6 +83,10 @@ def extract_reference_text(html: str) -> str:
     verse_text = re.sub(r'</span>', ' ', verse_text)
     verse_text = re.sub(r'<a[^>]*>', '', verse_text)
     verse_text = re.sub(r'</a>', '', verse_text)
+
+    verse_text = re.sub(r'<i[^>]*>', '', verse_text)
+    verse_text = re.sub(r'</i>', '', verse_text)
+
     verse_text = re.sub(r'<br[^>]*>', ' ', verse_text)
     verse_text = re.sub(r'&nbsp;', ' ', verse_text)
     verse_text = re.sub(r'\s+', ' ', verse_text)  # Replace multiple spaces with a single space
