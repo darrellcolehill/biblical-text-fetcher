@@ -42,8 +42,8 @@ def extract_reference_text(html: str) -> str:
     # Get the verse text from the match
     verse_text = match.group(1).strip()
 
-    # Replace <sup class="versenum"> tags with just the number
-    verse_text = re.sub(r'<sup[^>]*class=["\']versenum["\'][^>]*>(\d+)</sup>', r'\1', verse_text, flags=re.IGNORECASE)
+    # Remove all other <sup> tags and keep only the number inside
+    verse_text = re.sub(r'<sup[^>]*>(.*?)</sup>', r'\1', verse_text, flags=re.IGNORECASE)
 
     # Scrub metadata
     verse_text = re.sub(r'<div [^>]+>', '', verse_text)
