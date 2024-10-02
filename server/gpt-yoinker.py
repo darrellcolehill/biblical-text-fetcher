@@ -12,7 +12,7 @@ if not key:
 # Set the API key for OpenAI
 openai.api_key = key
 
-def call_chatgpt(prompt, model="gpt-3.5-turbo"):
+def chatgpt_yoink(prompt, model="gpt-3.5-turbo"):
     try:
         # Call OpenAI's ChatGPT API
         response = openai.ChatCompletion.create(

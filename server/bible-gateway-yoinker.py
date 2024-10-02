@@ -7,7 +7,7 @@ import urllib.parse
 # Library imports
 import requests
 
-def yoink(version: str, book: str, chapter: str, verses: List[int] = None) -> str:
+def bible_gateway_yoink(version: str, book: str, chapter: str, verses: List[int] = None) -> str:
     html = download_reference_html(f"{book} {chapter}", version)
     chapterText = extract_reference_text(html)
     if(verses != None):
