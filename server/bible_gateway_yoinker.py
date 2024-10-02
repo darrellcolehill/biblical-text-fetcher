@@ -6,10 +6,12 @@ import urllib.parse
 
 # Library imports
 import requests
+from bs4 import BeautifulSoup
+import requests
+
 
 def bible_gateway_yoink(version: str, book: str, chapter: str, verses: List[int] = None) -> str:
-    html = download_reference_html(f"{book} {chapter}", version)
-    chapterText = extract_reference_text(html)
+    chapterText = get_passage_content(f"{book} {chapter}", version)
 
     # print(html)
     # print(chapterText)
@@ -17,13 +19,11 @@ def bible_gateway_yoink(version: str, book: str, chapter: str, verses: List[int]
         selectedVerses = extract_verses(chapterText, verses)
         return selectedVerses
     else:
-        # TODO: verify that this is working 
         allVerses = extract_verses(chapterText)
         return allVerses
+    
 
-
-def download_reference_html(verse_ref: str, version: str) -> str:
-    """Pulls HTML from BibleGateway"""
+def get_passage_content(verse_ref: str, version: str) -> str:
 
     # Encode the verse ref so we can pass it to gateway
     verse_ref_encoded = urllib.parse.quote(verse_ref)
@@ -31,18 +31,56 @@ def download_reference_html(verse_ref: str, version: str) -> str:
     # Construct url
     url = f"https://www.biblegateway.com/passage/?search={verse_ref_encoded}&version={version}"
 
-    # Pull page from gateway
-    response = requests.get(url, timeout=10)
+    # Send a GET request to the provided URL
+    response = requests.get(url)
+    
+    # Check if the request was successful
+    if response.status_code != 200:
+        return f"Failed to retrieve content. Status code: {response.status_code}"
+    
+    # Parse the HTML content using BeautifulSoup
+    soup = BeautifulSoup(response.content, 'html.parser')
+    
+    # Find the div with the specific class name
+    passage_div = soup.find('div', class_='passage-content passage-class-0')
+    
+    if not passage_div:
+        return "Div with the specified class not found."
 
-    # Done.
-    logging.debug(response.text)
-    return response.text
+    # Replace <sup class="versenum"> elements with "VERSENUM-\d"
+    for sup in passage_div.find_all('sup', class_='versenum'):
+        versenum_text = sup.get_text(strip=True)  # Get the number inside <sup>
+        sup.replace_with(f" VERSENUM-{versenum_text} ") 
+
+    # Remove all <sup> and similar elements that might contain footnotes/cross-references
+    for sup in passage_div.find_all('sup'):
+        sup.decompose()  # Removes the element from the parsed HTML tree
+
+    for sup in passage_div.find_all('h3'):
+        sup.decompose()  # Removes the element from the parsed HTML tree
+
+    # Find and remove the footnotes div if it exists
+    footnotes_div = soup.find('div', class_='footnotes')
+    if footnotes_div:
+        footnotes_div.decompose()  # Removes the footnotes section entirely
+
+    chapter_span = soup.find('span', class_='chapternum')
+    if chapter_span:
+        chapter_span.replace_with(f" VERSENUM-1 ") 
+
+    # Find and remove the footnotes div if it exists
+    hiddenCrossRef_div = soup.find('div', class_='crossrefs hidden')
+    if hiddenCrossRef_div:
+        hiddenCrossRef_div.decompose()  # Removes the footnotes section entirely
+    
+    # Extract and return the plain text without the footnotes
+    return passage_div.get_text()
 
 
 #  just populate verses correctly if they give a verse range using a for-loop
 def extract_verses(text, verse_list: List = None):
     # Create a regex pattern to match the verses
-    pattern = r"VERSE-(\d+)\s(.+?)(?=\sVERSE-\d+|$)"
+    pattern = r"VERSENUM-(\d+)\s(.+?)(?=\sVERSENUM-\d+|$)"
     
     # Find all the verses using the pattern
     verses = re.findall(pattern, text, re.DOTALL)
@@ -58,59 +96,6 @@ def extract_verses(text, verse_list: List = None):
     extracted_verses = [verse_dict[verse_num] for verse_num in verse_list if verse_num in verse_dict]
     
     return ' '.join(extracted_verses)
-
-
-def extract_reference_text(html: str) -> str:
-    """Given HTML from BG, pull out just the Scripture text and keeps verse numbers."""
-
-    # Use a regex pattern to find the correct content div
-    match = re.search(
-        r'<div class=\'passage-content passage-class-0.*?>(.*?)</div>',
-        html,
-        re.DOTALL
-    )
-
-    if not match:
-        print(html)
-        raise SyntaxError("Couldn't find verse content")
-
-    # Get the verse text from the match
-    verse_text = match.group(1).strip()
-
-    # Remove <sup> tags with class 'chapternum' and replace with '1'
-    verse_text = re.sub(r'<span[^>]*class=["\']chapternum["\'][^>]*>(.*?)</span>', 'VERSE-1 ', verse_text, flags=re.IGNORECASE)
-    # Remove <sup> tags with class 'versenum' and keep the number inside
-    verse_text = re.sub(r'<sup[^>]*class=["\']versenum["\'][^>]*>(.*?)</sup>', r'VERSE-\1', verse_text, flags=re.IGNORECASE)
-
-    # Scrub metadata
-    verse_text = re.sub(r"<sup (.*?)</sup>", "", verse_text)
-    verse_text = re.sub(r'<div [^>]+>', '', verse_text)
-    verse_text = re.sub(r'<h3>.*?</h3>', '', verse_text)
-    verse_text = re.sub(r'<h4>.*?</h4>', '', verse_text)
-
-    # Remove the ordered list <ol> and its content (footnotes)
-    verse_text = re.sub(r'<ol>.*?</ol>', '', verse_text, flags=re.DOTALL)
-
-    # Remove other unwanted tags
-    verse_text = re.sub(r'<p[^>]*>', '', verse_text)
-    verse_text = re.sub(r'</p>', ' ', verse_text)
-    verse_text = re.sub(r'<span[^>]*>', ' ', verse_text)
-    verse_text = re.sub(r'</span>', ' ', verse_text)
-    verse_text = re.sub(r'<a[^>]*>', '', verse_text)
-    verse_text = re.sub(r'</a>', '', verse_text)
-
-    verse_text = re.sub(r'<i[^>]*>', '', verse_text)
-    verse_text = re.sub(r'</i>', '', verse_text)
-
-    verse_text = re.sub(r'<br[^>]*>', ' ', verse_text)
-    verse_text = re.sub(r'&nbsp;', ' ', verse_text)
-
-    # Clean up any remaining whitespace
-    verse_text = re.sub(r'\s+', ' ', verse_text)  # Replace multiple spaces with a single space
-    verse_text = verse_text.strip()
-
-    # All done.
-    return verse_text
 
 # yoinkedVerseText = bible_gateway_yoink("NKJV", "Genesis", "1", [30])
 # print(yoinkedVerseText)
