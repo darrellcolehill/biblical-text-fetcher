@@ -15,11 +15,12 @@ client = openai.OpenAI()
 def chatgpt_yoink(version, book, chapter, verses, model="gpt-3.5-turbo"):
     if verses is not None and len(verses) > 0:
         verseString = ', '.join(map(str, verses))
-        prompt = f"Get {book} {chapter}:{verseString} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
+        prompt = f"Get {book} chapter {chapter} verses {verseString} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
     else:
         prompt = f"Get {book} {chapter} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
 
     try:
+        print(prompt)
         # Call OpenAI's ChatGPT API
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
