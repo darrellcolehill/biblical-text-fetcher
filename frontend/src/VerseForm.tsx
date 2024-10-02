@@ -14,47 +14,59 @@ import {
   CircularProgress,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import AddIcon from '@mui/icons-material/Add';
+import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
 
 const VerseForm: React.FC = () => {
-  const [version, setVersion] = useState('');
-  const [book, setBook] = useState('');
-  const [chapter, setChapter] = useState('');
-  const [verse, setVerse] = useState('');
-  const [responseText, setResponseText] = useState('');
+  const [inputRows, setInputRows] = useState([{ version: '', book: '', chapter: '', verse: '', source: 'GPT' }]);
+  const [responseTexts, setResponseTexts] = useState<string[]>([]);
   const [copySuccess, setCopySuccess] = useState('');
-  const [source, setSource] = useState('GPT');
   const [loading, setLoading] = useState(false);
+
+  const handleAddRow = () => {
+    setInputRows([...inputRows, { version: '', book: '', chapter: '', verse: '', source: 'GPT' }]);
+  };
+
+  const handleInputChange = (index: number, field: string, value: string) => {
+    const newRows = [...inputRows];
+    newRows[index][field] = value;
+    setInputRows(newRows);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const allResponseTexts: string[] = [];
+    const requests = inputRows.map(async (row) => {
+      const { version, book, chapter, verse, source } = row;
 
-    if (!book || !chapter || !version) {
-      alert('Please fill in both Book, Chapter, and Version');
-      return;
-    }
+      if (!book || !chapter || !version) {
+        alert('Please fill in both Book, Chapter, and Version for all rows');
+        return;
+      }
 
-    const versePattern = /^(?:\d+|\d+(?:,\s*\d+)*|\d+-\d+)$/;
+      const versePattern = /^(?:\d+|\d+(?:,\s*\d+)*|\d+-\d+)$/;
 
-    if (verse && !versePattern.test(verse)) {
-      alert('Please enter a valid verse format: a single verse (e.g., 1), multiple verses (e.g., 1, 2, 3), or a range (e.g., 1-3)');
-      return;
-    }
+      if (verse && !versePattern.test(verse)) {
+        alert('Please enter a valid verse format: a single verse (e.g., 1), multiple verses (e.g., 1, 2, 3), or a range (e.g., 1-3)');
+        return;
+      }
 
-    const verseArray: number[] = [];
+      const verseArray: number[] = [];
 
-    if (verse) {
-      const verses = verse.split(',').map(v => v.trim());
-
-      verses.forEach(v => {
-        const rangeMatch = v.match(/(\d+)-(\d+)/);
-        if (rangeMatch) {
-          const start = parseInt(rangeMatch[1]);
-          const end = parseInt(rangeMatch[2]);
-          verseArray.push(...Array.from({ length: end - start + 1 }, (_, i) => start + i));
-        } else {
-          verseArray.push(parseInt(v));
-        }
-      });
+      if (verse) {
+        const verses = verse.split(',').map(v => v.trim());
+        verses.forEach(v => {
+          const rangeMatch = v.match(/(\d+)-(\d+)/);
+          if (rangeMatch) {
+            const start = parseInt(rangeMatch[1]);
+            const end = parseInt(rangeMatch[2]);
+            verseArray.push(...Array.from({ length: end - start + 1 }, (_, i) => start + i));
+          } else {
+            verseArray.push(parseInt(v));
+          }
+        });
+      }
 
       try {
         setLoading(true);
@@ -63,17 +75,17 @@ const VerseForm: React.FC = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            "version": version,
-            "book": book,
-            "chapter": chapter,
-            "verses": verseArray,
-            "source": source,
+            version,
+            book,
+            chapter,
+            verses: verseArray,
+            source,
           }),
         });
 
         if (response.ok) {
           const responseData = await response.json();
-          setResponseText(responseData.text);
+          allResponseTexts.push(responseData.text);
         } else {
           const errorData = await response.json();
           console.error("Error:", errorData);
@@ -83,32 +95,30 @@ const VerseForm: React.FC = () => {
       } finally {
         setLoading(false);
       }
-    }
+    });
 
-    console.log(`Book: ${book}, Chapter: ${chapter}, Verse: ${verseArray.length ? verseArray : 'All verses'}, Source: ${source}`);
+    await Promise.all(requests);
+    setResponseTexts(allResponseTexts);
+
+    if (allResponseTexts.length) {
+      const zip = new JSZip();
+      allResponseTexts.forEach((text, index) => {
+        zip.file(`response_${index + 1}.txt`, text);
+      });
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, 'responses.zip');
+    }
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(responseText).then(() => {
+    const combinedText = responseTexts.join('\n\n');
+    navigator.clipboard.writeText(combinedText).then(() => {
       setCopySuccess('Text copied!');
       setTimeout(() => setCopySuccess(''), 2000);
     }).catch(() => {
       setCopySuccess('Failed to copy text');
     });
-  };
-
-  const handleDownload = () => {
-    const fileName = `${book}_${chapter}_${verse ? verse.replace(/,/g, '_') : 'All'}_${version}.txt`;
-    const blob = new Blob([responseText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url); // Cleanup
   };
 
   return (
@@ -141,69 +151,74 @@ const VerseForm: React.FC = () => {
           <CircularProgress />
         </Box>
       )}
-      
+
       <Typography variant="h4" gutterBottom>
         Verse Lookup
       </Typography>
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={2} justifyContent="center">
-          <Grid item xs={2}>
-            <FormControl fullWidth>
-              <InputLabel id="source-label">Source</InputLabel>
-              <Select
-                labelId="source-label"
-                id="source-select"
-                value={source}
-                label="Source"
-                onChange={(e) => setSource(e.target.value)}
-              >
-                <MenuItem value="GPT">GPT</MenuItem>
-                <MenuItem value="Bible Gateway">Bible Gateway</MenuItem>
-              </Select>
-            </FormControl>
+        {inputRows.map((row, index) => (
+          <Grid container spacing={2} justifyContent="center" sx={{ mb: 4 }} key={index}>
+            <Grid item xs={2}>
+              <FormControl fullWidth>
+                <InputLabel id={`source-label-${index}`}>Source</InputLabel>
+                <Select
+                  labelId={`source-label-${index}`}
+                  id={`source-select-${index}`}
+                  value={row.source}
+                  label="Source"
+                  onChange={(e) => handleInputChange(index, 'source', e.target.value)}
+                >
+                  <MenuItem value="GPT">GPT</MenuItem>
+                  <MenuItem value="Bible Gateway">Bible Gateway</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={2}>
+              <TextField
+                label="Version"
+                value={row.version}
+                onChange={(e) => handleInputChange(index, 'version', e.target.value)}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <TextField
+                label="Book"
+                value={row.book}
+                onChange={(e) => handleInputChange(index, 'book', e.target.value)}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <TextField
+                label="Chapter"
+                value={row.chapter}
+                onChange={(e) => handleInputChange(index, 'chapter', e.target.value)}
+                fullWidth
+                required
+              />
+            </Grid>
+            <Grid item xs={2}>
+              <TextField
+                label="Verse (optional): 1, 2, 3; 1-3"
+                value={row.verse}
+                onChange={(e) => handleInputChange(index, 'verse', e.target.value)}
+                fullWidth
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={2}>
-            <TextField
-              label="Version"
-              value={version}
-              onChange={(e) => setVersion(e.target.value)}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <TextField
-              label="Book"
-              value={book}
-              onChange={(e) => setBook(e.target.value)}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <TextField
-              label="Chapter"
-              value={chapter}
-              onChange={(e) => setChapter(e.target.value)}
-              fullWidth
-              required
-            />
-          </Grid>
-          <Grid item xs={2}>
-            <TextField
-              label="Verse (optional): 1, 2, 3; 1-3"
-              value={verse}
-              onChange={(e) => setVerse(e.target.value)}
-              fullWidth
-            />
-          </Grid>
-        </Grid>
+        ))}
+        <IconButton onClick={handleAddRow} sx={{ mb: 2 }}>
+          <AddIcon />
+        </IconButton>
         <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
           Search
         </Button>
       </form>
 
-      {responseText && (
+      {responseTexts.length > 0 && (
         <Box sx={{ mt: 4, width: '100%', position: 'relative', border: '1px solid #ddd', borderRadius: '8px', padding: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Tooltip title="Copy to Clipboard">
@@ -213,12 +228,9 @@ const VerseForm: React.FC = () => {
             </Tooltip>
           </Box>
           <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>
-            {responseText}
+            {responseTexts.join('\n\n')}
           </Typography>
           {copySuccess && <Typography variant="body2" color="primary">{copySuccess}</Typography>}
-          <Button variant="contained" color="secondary" onClick={handleDownload} sx={{ mt: 2 }}>
-            Download as .txt
-          </Button>
         </Box>
       )}
     </Box>
