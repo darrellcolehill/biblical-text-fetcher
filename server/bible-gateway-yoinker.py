@@ -107,6 +107,6 @@ def extract_reference_text(html: str) -> str:
     # All done.
     return verse_text
 
-yoinkedVerseText = yoink("NKJV", "Genesis", "1", [30])
+yoinkedVerseText = bible_gateway_yoink("NKJV", "Genesis", "1", [30])
 
 print(yoinkedVerseText)
