@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Grid, IconButton, Tooltip, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Grid,
+  IconButton,
+  Tooltip,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  CircularProgress,
+} from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 const VerseForm: React.FC = () => {
@@ -7,23 +20,21 @@ const VerseForm: React.FC = () => {
   const [book, setBook] = useState('');
   const [chapter, setChapter] = useState('');
   const [verse, setVerse] = useState('');
-  const [responseText, setResponseText] = useState(''); // State to hold the response text
-  const [copySuccess, setCopySuccess] = useState(''); // State to handle copy success message
-  const [source, setSource] = useState('GPT'); // State to handle the source selection
+  const [responseText, setResponseText] = useState('');
+  const [copySuccess, setCopySuccess] = useState('');
+  const [source, setSource] = useState('GPT');
+  const [loading, setLoading] = useState(false); // Loading state
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if Book, Chapter, and Version are filled
     if (!book || !chapter || !version) {
       alert('Please fill in both Book, Chapter, and Version');
       return;
     }
 
-    // Regular expression to validate verse input
     const versePattern = /^(?:\d+|\d+(?:,\s*\d+)*|\d+-\d+)$/;
 
-    // Check if the verse input matches the required formats
     if (verse && !versePattern.test(verse)) {
       alert('Please enter a valid verse format: a single verse (e.g., 1), multiple verses (e.g., 1, 2, 3), or a range (e.g., 1-3)');
       return;
@@ -35,8 +46,7 @@ const VerseForm: React.FC = () => {
       const verses = verse.split(',').map(v => v.trim());
 
       verses.forEach(v => {
-        const rangeMatch = v.match(/(\d+)-(\d+)/); // Check for range
-
+        const rangeMatch = v.match(/(\d+)-(\d+)/);
         if (rangeMatch) {
           const start = parseInt(rangeMatch[1]);
           const end = parseInt(rangeMatch[2]);
@@ -47,8 +57,9 @@ const VerseForm: React.FC = () => {
       });
 
       try {
-        const yoinkSource = source == "GPT" ? "GPT" : "BG"
-        const text = await fetch(`http://localhost:5000/yoink${yoinkSource}`, {
+        setLoading(true); // Set loading to true before fetching
+        const yoinkSource = source === "GPT" ? "GPT" : "BG";
+        const response = await fetch(`http://localhost:5000/yoink${yoinkSource}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -56,20 +67,21 @@ const VerseForm: React.FC = () => {
             "book": book,
             "chapter": chapter,
             "verses": verseArray,
-            "source": source // Include source in the request
-          })
+            "source": source,
+          }),
         });
 
-        if (text.ok) {
-          const responseData = await text.json(); // Parse the JSON response
-          setResponseText(responseData.text); // Store the response text
+        if (response.ok) {
+          const responseData = await response.json();
+          setResponseText(responseData.text);
         } else {
-          // Handle error response
-          const errorData = await text.json();
+          const errorData = await response.json();
           console.error("Error:", errorData);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false); // Set loading to false after fetch completes
       }
     }
 
@@ -79,7 +91,7 @@ const VerseForm: React.FC = () => {
   const handleCopy = () => {
     navigator.clipboard.writeText(responseText).then(() => {
       setCopySuccess('Text copied!');
-      setTimeout(() => setCopySuccess(''), 2000); // Clear success message after 2 seconds
+      setTimeout(() => setCopySuccess(''), 2000);
     }).catch(() => {
       setCopySuccess('Failed to copy text');
     });
@@ -94,14 +106,33 @@ const VerseForm: React.FC = () => {
         padding: 2,
         maxWidth: 1200,
         margin: '0 auto',
+        position: 'relative', // Set position relative for the overlay
       }}
     >
+      {loading && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent background
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000, // Make sure it's on top of other elements
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      )}
+      
       <Typography variant="h4" gutterBottom>
         Verse Lookup
       </Typography>
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={2} justifyContent="center"> {/* Center align the grid items */}
-          {/* Dropdown for selecting source (GPT or Bible Gateway) */}
+        <Grid container spacing={2} justifyContent="center">
           <Grid item xs={2}>
             <FormControl fullWidth>
               <InputLabel id="source-label">Source</InputLabel>
@@ -117,8 +148,6 @@ const VerseForm: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-
-          {/* Other form inputs */}
           <Grid item xs={2}>
             <TextField
               label="Version"
