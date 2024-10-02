@@ -8,10 +8,19 @@ const VerseForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Check if Book and Chapter are filled
     if (!book || !chapter) {
       alert('Please fill in both Book and Chapter');
+      return;
+    }
+
+    // Regular expression to validate verse input
+    const versePattern = /^(?:\d+|\d+(?:,\s*\d+)*|\d+-\d+)$/;
+
+    // Check if the verse input matches the required formats
+    if (verse && !versePattern.test(verse)) {
+      alert('Please enter a valid verse format: a single verse (e.g., 1), multiple verses (e.g., 1, 2, 3), or a range (e.g., 1-3)');
       return;
     }
 
