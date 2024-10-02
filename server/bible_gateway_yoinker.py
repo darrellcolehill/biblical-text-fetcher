@@ -89,7 +89,7 @@ def extract_verses(text, verse_list: List = None):
     verse_dict = {int(num): verse.strip() for num, verse in verses}
 
     # If verse_list is None, return all verses
-    if verse_list is None:
+    if verse_list is None or len(verse_list) == 0:
         return ' '.join(verse_dict.values())
     
     # Extract the verses based on the provided verse_list
