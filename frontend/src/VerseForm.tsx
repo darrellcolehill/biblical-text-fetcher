@@ -25,27 +25,22 @@ const VerseForm: React.FC = () => {
       return;
     }
 
-    // Parse the verse input
     const verseArray: number[] = [];
 
     if (verse) {
-      const verses = verse.split(',').map(v => v.trim()); // Split by comma
+      const verses = verse.split(',').map(v => v.trim());
 
       verses.forEach(v => {
         const rangeMatch = v.match(/(\d+)-(\d+)/); // Check for range
 
         if (rangeMatch) {
-          // If it's a range, generate all numbers from start to end
           const start = parseInt(rangeMatch[1]);
           const end = parseInt(rangeMatch[2]);
           verseArray.push(...Array.from({ length: end - start + 1 }, (_, i) => start + i));
         } else {
-          // Otherwise, just add the single number
           verseArray.push(parseInt(v));
         }
       });
-
-      console.log(verses)
     }
 
     // Proceed with form submission logic
