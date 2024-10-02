@@ -12,7 +12,12 @@ if not key:
 # Set the API key for OpenAI
 openai.api_key = key
 
-def chatgpt_yoink(prompt, model="gpt-3.5-turbo"):
+def chatgpt_yoink(version, book, chapter, verses, model="gpt-3.5-turbo"):
+
+
+    verseString = ', '.join(map(str, verses))
+    
+    prompt = f"Get {book} {chapter}:{verseString} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
     try:
         # Call OpenAI's ChatGPT API
         response = openai.ChatCompletion.create(
