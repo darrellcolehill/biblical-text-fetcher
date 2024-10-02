@@ -10,9 +10,9 @@ const VerseForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if Book and Chapter are filled
+    // Check if Book, Chapter, and Version are filled
     if (!book || !chapter || !version) {
-      alert('Please fill in both Book, Chapter and Version');
+      alert('Please fill in both Book, Chapter, and Version');
       return;
     }
 
@@ -25,8 +25,31 @@ const VerseForm: React.FC = () => {
       return;
     }
 
+    // Parse the verse input
+    const verseArray: number[] = [];
+
+    if (verse) {
+      const verses = verse.split(',').map(v => v.trim()); // Split by comma
+
+      verses.forEach(v => {
+        const rangeMatch = v.match(/(\d+)-(\d+)/); // Check for range
+
+        if (rangeMatch) {
+          // If it's a range, generate all numbers from start to end
+          const start = parseInt(rangeMatch[1]);
+          const end = parseInt(rangeMatch[2]);
+          verseArray.push(...Array.from({ length: end - start + 1 }, (_, i) => start + i));
+        } else {
+          // Otherwise, just add the single number
+          verseArray.push(parseInt(v));
+        }
+      });
+
+      console.log(verses)
+    }
+
     // Proceed with form submission logic
-    console.log(`Book: ${book}, Chapter: ${chapter}, Verse: ${verse || 'All verses'}`);
+    console.log(`Book: ${book}, Chapter: ${chapter}, Verse: ${verseArray.length ? verseArray : 'All verses'}`);
   };
 
   return (
@@ -45,14 +68,14 @@ const VerseForm: React.FC = () => {
       </Typography>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
-           <Grid item xs={3}>
-                <TextField
-                label="Version"
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
-                fullWidth
-                required
-                />
+          <Grid item xs={3}>
+            <TextField
+              label="Version"
+              value={version}
+              onChange={(e) => setVersion(e.target.value)}
+              fullWidth
+              required
+            />
           </Grid>
           <Grid item xs={3}>
             <TextField
