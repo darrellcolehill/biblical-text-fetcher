@@ -82,6 +82,12 @@ def extract_reference_text(html: str) -> str:
     verse_text = re.sub(r"<sup (.*?)</sup>", "", verse_text)
     verse_text = re.sub(r'<div [^>]+>', '', verse_text)
     verse_text = re.sub(r'<h3>.*?</h3>', '', verse_text)
+    verse_text = re.sub(r'<h4>.*?</h4>', '', verse_text)
+
+    # Remove the ordered list <ol> and its content (footnotes)
+    verse_text = re.sub(r'<ol>.*?</ol>', '', verse_text, flags=re.DOTALL)
+
+    # Remove other unwanted tags
     verse_text = re.sub(r'<p[^>]*>', '', verse_text)
     verse_text = re.sub(r'</p>', ' ', verse_text)
     verse_text = re.sub(r'<span[^>]*>', ' ', verse_text)
@@ -95,7 +101,7 @@ def extract_reference_text(html: str) -> str:
     verse_text = re.sub(r'<br[^>]*>', ' ', verse_text)
     verse_text = re.sub(r'&nbsp;', ' ', verse_text)
 
-    # TODO: figure out why this is not working. 
+    # Clean up any remaining whitespace
     verse_text = re.sub(r'\s+', ' ', verse_text)  # Replace multiple spaces with a single space
     verse_text = verse_text.strip()
 
@@ -103,5 +109,4 @@ def extract_reference_text(html: str) -> str:
     return verse_text
 
 
-# print(extract_reference_text(download_reference_html()))
-print(yoink("NKJV", "Genesis", "1", verses=[1, 3]))
+print(yoink("NKJV", "Genesis", "2", verses=[23]))
