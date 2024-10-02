@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Grid, IconButton, Tooltip } from '@mui/material';
+import { TextField, Button, Box, Typography, Grid, IconButton, Tooltip, MenuItem, Select, InputLabel, FormControl } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 const VerseForm: React.FC = () => {
@@ -9,6 +9,7 @@ const VerseForm: React.FC = () => {
   const [verse, setVerse] = useState('');
   const [responseText, setResponseText] = useState(''); // State to hold the response text
   const [copySuccess, setCopySuccess] = useState(''); // State to handle copy success message
+  const [source, setSource] = useState('GPT'); // State to handle the source selection
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,16 +47,18 @@ const VerseForm: React.FC = () => {
       });
 
       try {
-        const text = await fetch("http://localhost:5000/yoinkBG", {
+        const yoinkSource = source == "GPT" ? "GPT" : "BG"
+        const text = await fetch(`http://localhost:5000/yoink${yoinkSource}`, {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             "version": version,
             "book": book,
             "chapter": chapter,
-            "verses": verseArray
+            "verses": verseArray,
+            "source": source // Include source in the request
           })
-        })
+        });
 
         if (text.ok) {
           const responseData = await text.json(); // Parse the JSON response
@@ -70,7 +73,7 @@ const VerseForm: React.FC = () => {
       }
     }
 
-    console.log(`Book: ${book}, Chapter: ${chapter}, Verse: ${verseArray.length ? verseArray : 'All verses'}`);
+    console.log(`Book: ${book}, Chapter: ${chapter}, Verse: ${verseArray.length ? verseArray : 'All verses'}, Source: ${source}`);
   };
 
   const handleCopy = () => {
@@ -97,8 +100,26 @@ const VerseForm: React.FC = () => {
         Verse Lookup
       </Typography>
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          <Grid item xs={3}>
+        <Grid container spacing={2} justifyContent="center"> {/* Center align the grid items */}
+          {/* Dropdown for selecting source (GPT or Bible Gateway) */}
+          <Grid item xs={2}>
+            <FormControl fullWidth>
+              <InputLabel id="source-label">Source</InputLabel>
+              <Select
+                labelId="source-label"
+                id="source-select"
+                value={source}
+                label="Source"
+                onChange={(e) => setSource(e.target.value)}
+              >
+                <MenuItem value="GPT">GPT</MenuItem>
+                <MenuItem value="Bible Gateway">Bible Gateway</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* Other form inputs */}
+          <Grid item xs={2}>
             <TextField
               label="Version"
               value={version}
@@ -107,7 +128,7 @@ const VerseForm: React.FC = () => {
               required
             />
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             <TextField
               label="Book"
               value={book}
@@ -116,7 +137,7 @@ const VerseForm: React.FC = () => {
               required
             />
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             <TextField
               label="Chapter"
               value={chapter}
@@ -125,7 +146,7 @@ const VerseForm: React.FC = () => {
               required
             />
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             <TextField
               label="Verse (optional): 1, 2, 3; 1-3"
               value={verse}
