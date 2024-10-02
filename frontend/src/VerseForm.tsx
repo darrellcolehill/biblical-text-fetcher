@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, Box, Typography, Grid } from '@mui/material';
 
 const VerseForm: React.FC = () => {
+  const [version, setVersion] = useState('');
   const [book, setBook] = useState('');
   const [chapter, setChapter] = useState('');
   const [verse, setVerse] = useState('');
@@ -10,8 +11,8 @@ const VerseForm: React.FC = () => {
     e.preventDefault();
 
     // Check if Book and Chapter are filled
-    if (!book || !chapter) {
-      alert('Please fill in both Book and Chapter');
+    if (!book || !chapter || !version) {
+      alert('Please fill in both Book, Chapter and Version');
       return;
     }
 
@@ -35,7 +36,7 @@ const VerseForm: React.FC = () => {
         flexDirection: 'column',
         alignItems: 'center',
         padding: 2,
-        maxWidth: 800,
+        maxWidth: 1200,
         margin: '0 auto',
       }}
     >
@@ -44,7 +45,16 @@ const VerseForm: React.FC = () => {
       </Typography>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={2}>
-          <Grid item xs={4}>
+           <Grid item xs={3}>
+                <TextField
+                label="Version"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+                fullWidth
+                required
+                />
+          </Grid>
+          <Grid item xs={3}>
             <TextField
               label="Book"
               value={book}
@@ -53,7 +63,7 @@ const VerseForm: React.FC = () => {
               required
             />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={3}>
             <TextField
               label="Chapter"
               value={chapter}
@@ -62,7 +72,7 @@ const VerseForm: React.FC = () => {
               required
             />
           </Grid>
-          <Grid item xs={4}>
+          <Grid item xs={3}>
             <TextField
               label="Verse (optional): 1, 2, 3; 1-3"
               value={verse}
