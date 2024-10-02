@@ -1,0 +1,1 @@
+# TODO: make API call to OpenAI to get the Book, Chapter, Verse(s) that they are asking for. 
