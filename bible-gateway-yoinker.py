@@ -10,7 +10,6 @@ import requests
 def yoink(version: str, book: str, chapter: str, verses: List[int] = None) -> str:
     html = download_reference_html(f"{book} {chapter}", version)
     chapterText = extract_reference_text(html)
-
     if(verses != None):
         return extract_verses(chapterText, verses)
     else:
@@ -35,25 +34,25 @@ def download_reference_html(verse_ref: str, version: str) -> str:
     return response.text
 
 
-# TODO: update this to just handle verses being a list of integers.
 #  just populate verses correctly if they give a verse range using a for-loop
-def extract_verses(text, verses = -1):
-    # Split the text into individual verses
-    verse_list = text.split('VERSE-')[1:]  # Ignore the first empty split
-    verses_dict = {int(verse.split(' ', 1)[0]): verse.split(' ', 1)[1] for verse in verse_list}
+def extract_verses(text, verse_list: List = None):
+    # Create a regex pattern to match the verses
+    pattern = r"VERSE-(\d+)\s(.+?)(?=\sVERSE-\d+|$)"
+    
+    # Find all the verses using the pattern
+    verses = re.findall(pattern, text, re.DOTALL)
+    
+    # Create a dictionary to store the verse number and corresponding text
+    verse_dict = {int(num): verse.strip() for num, verse in verses}
 
-    extracted_verses = []
-
-    for verse in verses:
-        if isinstance(verse, int):  # If a single verse is provided
-            extracted_verses.append(verses_dict.get(verse, f"Verse {verse} not found."))
-        elif isinstance(verse, tuple) and len(verse) == 2:  # If a range of verses is provided
-            start, end = verse
-            for v in range(start, end + 1):
-                extracted_verses.append(verses_dict.get(v, f"Verse {v} not found."))
-
-    combined_text = ' '.join(extracted_verses)
-    return combined_text
+    # If verse_list is None, return all verses
+    if verse_list is None:
+        return ' '.join(verse_dict.values())
+    
+    # Extract the verses based on the provided verse_list
+    extracted_verses = [verse_dict[verse_num] for verse_num in verse_list if verse_num in verse_dict]
+    
+    return ' '.join(extracted_verses)
 
 
 def extract_reference_text(html: str) -> str:
@@ -108,5 +107,6 @@ def extract_reference_text(html: str) -> str:
     # All done.
     return verse_text
 
+yoinkedVerseText = yoink("NKJV", "Genesis", "1", [30])
 
-print(yoink("NKJV", "Genesis", "2", verses=[23]))
+print(yoinkedVerseText)
