@@ -7,7 +7,7 @@ const VerseForm: React.FC = () => {
   const [chapter, setChapter] = useState('');
   const [verse, setVerse] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Check if Book, Chapter, and Version are filled
@@ -41,6 +41,26 @@ const VerseForm: React.FC = () => {
           verseArray.push(parseInt(v));
         }
       });
+
+      const text = await fetch("http://localhost:5000/yoinkBG", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          "version": version,
+          "book": book,
+          "chapter": chapter,
+          "verses": verseArray
+        })
+      })
+
+      if (text.ok) {
+        const responseData = await text.json(); // Parse the JSON response
+        console.log(responseData); // Print the text from the response
+      } else {
+        // Handle error response
+        const errorData = await text.json();
+        console.error("Error:", errorData);
+      }    
     }
 
     // Proceed with form submission logic

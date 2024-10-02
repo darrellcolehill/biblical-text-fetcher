@@ -10,11 +10,16 @@ import requests
 def bible_gateway_yoink(version: str, book: str, chapter: str, verses: List[int] = None) -> str:
     html = download_reference_html(f"{book} {chapter}", version)
     chapterText = extract_reference_text(html)
+
+    # print(html)
+    # print(chapterText)
     if(verses != None):
-        return extract_verses(chapterText, verses)
+        selectedVerses = extract_verses(chapterText, verses)
+        return selectedVerses
     else:
         # TODO: verify that this is working 
-        return extract_verses(chapterText)
+        allVerses = extract_verses(chapterText)
+        return allVerses
 
 
 def download_reference_html(verse_ref: str, version: str) -> str:
