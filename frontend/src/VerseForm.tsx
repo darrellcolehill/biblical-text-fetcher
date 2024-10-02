@@ -23,7 +23,7 @@ const VerseForm: React.FC = () => {
   const [responseText, setResponseText] = useState('');
   const [copySuccess, setCopySuccess] = useState('');
   const [source, setSource] = useState('GPT');
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +57,7 @@ const VerseForm: React.FC = () => {
       });
 
       try {
-        setLoading(true); // Set loading to true before fetching
+        setLoading(true);
         const yoinkSource = source === "GPT" ? "GPT" : "BG";
         const response = await fetch(`http://localhost:5000/yoink${yoinkSource}`, {
           method: "POST",
@@ -81,7 +81,7 @@ const VerseForm: React.FC = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false); // Set loading to false after fetch completes
+        setLoading(false);
       }
     }
 
@@ -97,6 +97,20 @@ const VerseForm: React.FC = () => {
     });
   };
 
+  const handleDownload = () => {
+    const fileName = `${book}_${chapter}_${verse ? verse.replace(/,/g, '_') : 'All'}_${version}.txt`;
+    const blob = new Blob([responseText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url); // Cleanup
+  };
+
   return (
     <Box
       sx={{
@@ -106,7 +120,7 @@ const VerseForm: React.FC = () => {
         padding: 2,
         maxWidth: 1200,
         margin: '0 auto',
-        position: 'relative', // Set position relative for the overlay
+        position: 'relative',
       }}
     >
       {loading && (
@@ -117,11 +131,11 @@ const VerseForm: React.FC = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.8)', // Semi-transparent background
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 1000, // Make sure it's on top of other elements
+            zIndex: 1000,
           }}
         >
           <CircularProgress />
@@ -202,6 +216,9 @@ const VerseForm: React.FC = () => {
             {responseText}
           </Typography>
           {copySuccess && <Typography variant="body2" color="primary">{copySuccess}</Typography>}
+          <Button variant="contained" color="secondary" onClick={handleDownload} sx={{ mt: 2 }}>
+            Download as .txt
+          </Button>
         </Box>
       )}
     </Box>
