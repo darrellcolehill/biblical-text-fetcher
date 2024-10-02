@@ -8,30 +8,29 @@ key = os.getenv("OPENAI_API_KEY")
 if not key:
     raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
 
-
-# Set the API key for OpenAI
 openai.api_key = key
 
+client = openai.OpenAI()
+
 def chatgpt_yoink(version, book, chapter, verses, model="gpt-3.5-turbo"):
+    if verses is not None and len(verses) > 0:
+        verseString = ', '.join(map(str, verses))
+        prompt = f"Get {book} {chapter}:{verseString} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
+    else:
+        prompt = f"Get {book} {chapter} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
 
-
-    verseString = ', '.join(map(str, verses))
-    
-    prompt = f"Get {book} {chapter}:{verseString} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
     try:
         # Call OpenAI's ChatGPT API
-        response = openai.ChatCompletion.create(
-            model=model,
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}]
         )
-        # Return the content of the assistant's message
-        return response.choices[0].message['content'].strip()
+        return response.choices[0].message.content.strip()
 
     except Exception as e:
         return f"Error: {e}"
 
 # if __name__ == "__main__":
-#     user_input = input("Enter your prompt: ")
-#     response = call_chatgpt(user_input)
+#     response = chatgpt_yoink("NKJV", "Genesis", "1", [1, 2, 3, 4, 5])
 #     print("ChatGPT Response:")
 #     print(response)
