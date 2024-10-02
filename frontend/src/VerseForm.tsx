@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Grid } from '@mui/material';
+import { TextField, Button, Box, Typography, Grid, IconButton, Tooltip } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 const VerseForm: React.FC = () => {
   const [version, setVersion] = useState('');
   const [book, setBook] = useState('');
   const [chapter, setChapter] = useState('');
   const [verse, setVerse] = useState('');
+  const [responseText, setResponseText] = useState(''); // State to hold the response text
+  const [copySuccess, setCopySuccess] = useState(''); // State to handle copy success message
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,29 +45,41 @@ const VerseForm: React.FC = () => {
         }
       });
 
-      const text = await fetch("http://localhost:5000/yoinkBG", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          "version": version,
-          "book": book,
-          "chapter": chapter,
-          "verses": verseArray
+      try {
+        const text = await fetch("http://localhost:5000/yoinkBG", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            "version": version,
+            "book": book,
+            "chapter": chapter,
+            "verses": verseArray
+          })
         })
-      })
 
-      if (text.ok) {
-        const responseData = await text.json(); // Parse the JSON response
-        console.log(responseData); // Print the text from the response
-      } else {
-        // Handle error response
-        const errorData = await text.json();
-        console.error("Error:", errorData);
-      }    
+        if (text.ok) {
+          const responseData = await text.json(); // Parse the JSON response
+          setResponseText(responseData.text); // Store the response text
+        } else {
+          // Handle error response
+          const errorData = await text.json();
+          console.error("Error:", errorData);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     }
 
-    // Proceed with form submission logic
     console.log(`Book: ${book}, Chapter: ${chapter}, Verse: ${verseArray.length ? verseArray : 'All verses'}`);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(responseText).then(() => {
+      setCopySuccess('Text copied!');
+      setTimeout(() => setCopySuccess(''), 2000); // Clear success message after 2 seconds
+    }).catch(() => {
+      setCopySuccess('Failed to copy text');
+    });
   };
 
   return (
@@ -123,6 +138,22 @@ const VerseForm: React.FC = () => {
           Search
         </Button>
       </form>
+
+      {responseText && (
+        <Box sx={{ mt: 4, width: '100%', position: 'relative', border: '1px solid #ddd', borderRadius: '8px', padding: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Tooltip title="Copy to Clipboard">
+              <IconButton onClick={handleCopy} sx={{ position: 'absolute', top: 8, right: 8 }}>
+                <ContentCopyIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 2 }}>
+            {responseText}
+          </Typography>
+          {copySuccess && <Typography variant="body2" color="primary">{copySuccess}</Typography>}
+        </Box>
+      )}
     </Box>
   );
 };
