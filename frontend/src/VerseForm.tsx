@@ -20,10 +20,10 @@ import JSZip from 'jszip';
 
 const VerseForm: React.FC = () => {
   const [inputRows, setInputRows] = useState([{ version: '', book: '', chapter: '', verse: '', source: 'GPT' }]);
-  const [responseTexts, setResponseTexts] = useState<{ [key: string]: string }>({});
+  const [responseTexts, setResponseTexts] = useState<Record<string, string>>({});
   const [copySuccess, setCopySuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedText, setSelectedText] = useState<string>('');
+  const [selectedText, setSelectedText] = useState('');
 
   const handleAddRow = () => {
     setInputRows([...inputRows, { version: '', book: '', chapter: '', verse: '', source: 'GPT' }]);
@@ -35,14 +35,13 @@ const VerseForm: React.FC = () => {
     setInputRows(newRows);
   };
 
-  const handleRowClick = (index: number) => {
-    const key = `${inputRows[index].book}_${inputRows[index].chapter}_${inputRows[index].verse}_${inputRows[index].version}`;
-    setSelectedText(responseTexts[key] || ''); // Display the text corresponding to the clicked row
+  const handleRowClick = (key: string) => {
+    setSelectedText(responseTexts[key]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const allResponseTexts: { [key: string]: string } = {};
+    const allResponseTexts: Record<string, string> = {};
     const requests = inputRows.map(async (row) => {
       const { version, book, chapter, verse, source } = row;
 
@@ -91,8 +90,8 @@ const VerseForm: React.FC = () => {
 
         if (response.ok) {
           const responseData = await response.json();
-          const key = `${version}_${book}_${chapter}_${verse}_${version}`;
-          allResponseTexts[key] = responseData.text; // Use a unique key for the response
+          const key = `${book}_${chapter}_${verse || 'all'}_${version}`;
+          allResponseTexts[key] = responseData.text;
         } else {
           const errorData = await response.json();
           console.error("Error:", errorData);
@@ -111,11 +110,9 @@ const VerseForm: React.FC = () => {
   const handleDownload = () => {
     const zip = new JSZip();
     Object.entries(responseTexts).forEach(([key, text]) => {
-      const [book, chapter, verse, version] = key.split('_');
-      const fileName = `${book}_${chapter}_${verse}_${version}.txt`; // Include version in the file name
-      zip.file(fileName, text);
+      zip.file(`${key}.txt`, text); // File name includes book, chapter, verse, version
     });
-  
+
     zip.generateAsync({ type: 'blob' }).then(content => {
       saveAs(content, 'responses.zip');
     });
@@ -166,7 +163,7 @@ const VerseForm: React.FC = () => {
       </Typography>
       <form onSubmit={handleSubmit}>
         {inputRows.map((row, index) => (
-          <Grid container spacing={2} justifyContent="center" sx={{ mb: 4 }} key={index} onClick={() => handleRowClick(index)}>
+          <Grid container spacing={2} justifyContent="center" sx={{ mb: 4 }} key={index}>
             <Grid item xs={2}>
               <FormControl fullWidth>
                 <InputLabel id={`source-label-${index}`}>Source</InputLabel>
@@ -229,31 +226,38 @@ const VerseForm: React.FC = () => {
 
       {Object.keys(responseTexts).length > 0 && (
         <Box sx={{ mt: 4, width: '100%', position: 'relative', border: '1px solid #ddd', borderRadius: '8px', padding: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Tooltip title="Copy to Clipboard">
-              <IconButton onClick={handleCopy} sx={{ position: 'absolute', top: 8, right: 8 }}>
-                <ContentCopyIcon />
-              </IconButton>
-            </Tooltip>
-            <Button variant="contained" color="secondary" onClick={handleDownload}>
-              Download
-            </Button>
-          </Box>
-          <TextField
-            label="Selected Text"
-            value={selectedText}
-            multiline
-            fullWidth
-            rows={4}
-            variant="outlined"
-            sx={{ mt: 2 }}
-            InputProps={{
-              readOnly: true,
-            }}
-          />
-          {copySuccess && <Typography variant="body2" color="primary">{copySuccess}</Typography>}
+          <Typography variant="h6">Responses</Typography>
+          {Object.keys(responseTexts).map((key) => (
+            <Box key={key} onClick={() => handleRowClick(key)} sx={{ cursor: 'pointer', borderBottom: '1px solid #ddd', padding: 1 }}>
+              {key}
+            </Box>
+          ))}
+          <Tooltip title="Copy to Clipboard">
+            <IconButton onClick={handleCopy} sx={{ position: 'absolute', top: 8, right: 8 }}>
+              <ContentCopyIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
       )}
+
+      <TextField
+        label="Selected Response"
+        value={selectedText}
+        onChange={() => {}}
+        fullWidth
+        multiline
+        rows={4}
+        sx={{ mt: 2 }}
+        InputProps={{
+          readOnly: true,
+        }}
+      />
+
+      <Button variant="contained" color="secondary" onClick={handleDownload} sx={{ mt: 2 }}>
+        Download All
+      </Button>
+
+      {copySuccess && <Typography variant="body2" color="primary">{copySuccess}</Typography>}
     </Box>
   );
 };
