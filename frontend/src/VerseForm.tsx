@@ -35,8 +35,10 @@ const VerseForm: React.FC = () => {
     setInputRows(newRows);
   };
 
-  const handleRowClick = (key: string) => {
-    setSelectedText(responseTexts[key]);
+  const handleClearForm = () => {
+    setInputRows([{ version: '', book: '', chapter: '', verse: '', source: 'GPT' }]);
+    setResponseTexts({});
+    setSelectedText('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -222,13 +224,16 @@ const VerseForm: React.FC = () => {
         <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
           Search
         </Button>
+        <Button onClick={handleClearForm} variant="outlined" color="secondary" fullWidth sx={{ mt: 2 }}>
+          Clear Form
+        </Button>
       </form>
 
       {Object.keys(responseTexts).length > 0 && (
         <Box sx={{ mt: 4, width: '100%', position: 'relative', border: '1px solid #ddd', borderRadius: '8px', padding: 2 }}>
           <Typography variant="h6">Responses</Typography>
           {Object.keys(responseTexts).map((key) => (
-            <Box key={key} onClick={() => handleRowClick(key)} sx={{ cursor: 'pointer', borderBottom: '1px solid #ddd', padding: 1 }}>
+            <Box key={key} onClick={() => setSelectedText(responseTexts[key])} sx={{ cursor: 'pointer', borderBottom: '1px solid #ddd', padding: 1 }}>
               {key}
             </Box>
           ))}
@@ -241,23 +246,19 @@ const VerseForm: React.FC = () => {
       )}
 
       <TextField
-        label="Selected Response"
+        label="Selected Text"
         value={selectedText}
-        onChange={() => {}}
         fullWidth
         multiline
         rows={4}
         sx={{ mt: 2 }}
-        InputProps={{
-          readOnly: true,
-        }}
       />
 
-      <Button variant="contained" color="secondary" onClick={handleDownload} sx={{ mt: 2 }}>
-        Download All
+      <Button onClick={handleDownload} variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+        Download Responses as ZIP
       </Button>
 
-      {copySuccess && <Typography variant="body2" color="primary">{copySuccess}</Typography>}
+      {copySuccess && <Typography variant="body2" color="success.main" sx={{ mt: 2 }}>{copySuccess}</Typography>}
     </Box>
   );
 };
