@@ -43,6 +43,8 @@ const VerseForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true); // Start loading here
+
     const allResponseTexts: Record<string, string> = {};
     const requests = inputRows.map(async (row) => {
       const { version, book, chapter, verse, source } = row;
@@ -76,7 +78,6 @@ const VerseForm: React.FC = () => {
       }
 
       try {
-        setLoading(true);
         const yoinkSource = source === "GPT" ? "GPT" : "BG";
         const response = await fetch(`http://localhost:5000/yoink${yoinkSource}`, {
           method: "POST",
@@ -100,13 +101,12 @@ const VerseForm: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
       }
     });
 
     await Promise.all(requests);
     setResponseTexts(allResponseTexts);
+    setLoading(false); // Stop loading here after responses are received
   };
 
   const handleDownload = () => {
@@ -258,7 +258,9 @@ const VerseForm: React.FC = () => {
         Download Responses as ZIP
       </Button>
 
-      {copySuccess && <Typography variant="body2" color="success.main" sx={{ mt: 2 }}>{copySuccess}</Typography>}
+      {copySuccess && (
+        <Typography sx={{ mt: 1, color: 'green' }}>{copySuccess}</Typography>
+      )}
     </Box>
   );
 };
