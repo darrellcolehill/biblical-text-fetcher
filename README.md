@@ -1,8 +1,15 @@
-# biblical-text-yoinker
-Gets plaintext from public domain sources
+# Biblical-text-Fetcher
+Fetches specified biblical passages from specified ChatGPT or BibleGateway and donwloads the result as a .txt file. 
 
-## TODO: 
-1) Add GPT yoinker DONE
-2) Add UI DONE
-3) Download response as text file DONE
-4) Make it a CLI
+# Verse Input Specification
+Verses can be specified in the following ways
+
+Individual verse: 1
+
+Verse range: 1-5
+
+Cherry-picked verses: 1,2,3,4,5
+
+# How to Run CLI
+
+# How to Run Web App
