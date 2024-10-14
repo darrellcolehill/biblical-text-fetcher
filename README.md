@@ -10,6 +10,10 @@ Verse range: 1-5
 
 Cherry-picked verses: 1,2,3,4,5
 
-# How to Run CLI
+# How to Run/Download CLI
+
+1) Open termainal
+2) Change directory to cli
+3) Run the following command: pip install -e .
 
 # How to Run Web App
