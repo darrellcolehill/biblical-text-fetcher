@@ -1,28 +1,28 @@
 # Biblical-text-Fetcher
-Fetches specified biblical passages from specified ChatGPT or BibleGateway and donwloads the result as a .txt file. 
+Fetches specified biblical passages from specified ChatGPT or BibleGateway and downloads the result as a .txt file.
 
-# Verse Input Specification
-Verses can be specified in the following ways
+## Verse Input Specification
+Verses can be specified in the following ways:
 
 * Individual verse: 1
 * Verse range: 1-5
 * Cherry-picked verses: 1,2,3,4,5
 * Whole chapter: NULL (leaving it empty)
 
-# Adding OpenAI API Key To CLI
+## Adding OpenAI API Key To CLI
 1) Create a .env file in the cli/fetcher folder
 2) In the .env file add the following line: OPENAI_API_KEY="YOUR-API-KEY"
 
-# Adding OpenAI API Key to Web App Server
+## Adding OpenAI API Key to Web App Server
 1) Create .env file in the demo/server folder
 2) In the .env file add the following line: OPENAI_API_KEY="YOUR-API-KEY"
    
-# How to Download CLI
-1) Open termainal
+## How to Download CLI
+1) Open terminal
 2) Change directory to cli
 3) Run the following command: pip install -e .
 
-# CLI Options
+## CLI Options
 
 - **`--method` / `-p`** (required):  
   Specify the method for fetching the Bible passage:
@@ -54,24 +54,25 @@ Verses can be specified in the following ways
 - **`--file` / `-f`** (optional):  
   Path to an input file containing multiple passage requests, where each line follows the format:
 
+## CLI Usage
 
-# CLI Usage
+The CLI has two distinct usages and acts similar to pip. You can either use the manual approach by entering values for method, version, book, chapter, verses, or you can download passages in bulk by providing a path to a .txt file that has each line in the following form METHOD VERSION BOOK CHAPTER VERSES. 
 
-The CLI has two distinct usages and acts similar to pip. You can either use the manual approach by download passages by entering values for method, version, book, chapter, verses, or you can download passages in bulk by providing a path to a .txt file that has each line in the following form METHOD VERSION BOOK CHAPTER VERSES. 
+### Manual Example
+`bible-fetcher --method BG --version NIV --book Genesis --chapter 1 --verses 4,5`
 
-## Manual Example
-bible-fetcher --method BG --version NIV --book Genesis --chapter 1 --verses 4,5
-
-## File-based Example
-bible-fetcher --file ./passages.txt
+### File-based Example
+`bible-fetcher --file ./passages.txt`
 
 where passages.txt looks like the following
 
-GPT KVJ Matthew 1 1-5
-BG NKVJ Genesis 1
+```
+GPT KJV Matthew 1 1-5
+BG NKJV Genesis 1 4,5
 BG NIV Genesis 1
+```
 
-# How to Run Web App
+## How to Run Web App
 1) Open terminal
 2) Change directory to demo/frontend
 3) Run the following command: npm run dev
