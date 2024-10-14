@@ -10,7 +10,7 @@ Verse range: 1-5
 
 Cherry-picked verses: 1,2,3,4,5
 
-# How to Run/Download CLI
+# How to Download/Run CLI
 
 1) Open termainal
 2) Change directory to cli
