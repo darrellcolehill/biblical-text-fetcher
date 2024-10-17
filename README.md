@@ -11,11 +11,11 @@ Verses can be specified in the following ways:
 
 ## Adding OpenAI API Key To CLI
 1) Create a .env file in the cli/fetcher folder
-2) In the .env file add the following line: OPENAI_API_KEY="YOUR-API-KEY"
+2) In the .env file add the following line: ```OPENAI_API_KEY="YOUR-API-KEY"```
 
 ## Adding OpenAI API Key to Web App Server
 1) Create .env file in the demo/server folder
-2) In the .env file add the following line: OPENAI_API_KEY="YOUR-API-KEY"
+2) In the .env file add the following line: ```OPENAI_API_KEY="YOUR-API-KEY"```
    
 ## How to Download CLI
 1) Open terminal
@@ -59,10 +59,10 @@ Verses can be specified in the following ways:
 The CLI has two distinct usages and acts similar to pip. You can either use the manual approach by entering values for method, version, book, chapter, verses, or you can download passages in bulk by providing a path to a .txt file that has each line in the following form METHOD VERSION BOOK CHAPTER VERSES. 
 
 ### Manual Example
-`bible-fetcher --method BG --version NIV --book Genesis --chapter 1 --verses 4,5`
+```bible-fetcher --method BG --version NIV --book Genesis --chapter 1 --verses 4,5```
 
 ### File-based Example
-`bible-fetcher --file ./passages.txt`
+```bible-fetcher --file ./passages.txt```
 
 where passages.txt looks like the following
 
@@ -75,7 +75,8 @@ BG NIV Genesis 1
 ## How to Run Web App
 1) Open terminal
 2) Change directory to demo/frontend
-3) Run the following command: npm run dev
-4) Open a new terminal window
-5) Change directory to demo/server
-6) Run the following command: python index.py
+3) Run the following command: ```npm install```
+4) Run the following command: ```npm run dev```
+5) Open a new terminal window
+6) Change directory to demo/server
+7) Run the following command: ```python index.py```
