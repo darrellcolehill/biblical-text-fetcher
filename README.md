@@ -20,7 +20,7 @@ Verses can be specified in the following ways:
 ## How to Download CLI
 1) Open terminal
 2) Change directory to cli
-3) Run the following command: pip install -e .
+3) Run the following command: ```pip install -e .```
 
 ## CLI Options
 
