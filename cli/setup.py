@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='bible-fetcher',
-    version='0.0.2',
+    version='0.0.3',
     description='Fetches bible passages from ChatGPT or BibleGateway',
     author='Darrell Hill',
     author_email='darrellcolehill@gmail.com',
