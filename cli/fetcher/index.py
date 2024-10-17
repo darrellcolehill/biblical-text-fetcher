@@ -59,13 +59,14 @@ def process_input_file(file_path: str):
         for line in f:
             if line.strip():  # Ignore empty lines
                 method_prefix, version, book, chapter, verses = parse_passage_line(line)
-
                 if method_prefix == "BG":
-                    print(bible_gateway_fetch(version, book, chapter, verses))
+                    text = bible_gateway_fetch(version, book, chapter, verses)
                 elif method_prefix == "GPT":
-                    print(chatgpt_fetch(book, chapter, verses))
+                    text = chatgpt_fetch(book, chapter, verses)
                 else:
                     print(f"Unknown method prefix: {method_prefix}")
+
+                save_passage_to_file(method_prefix, version, book, chapter, verses, text)
 
 
 def process_manual_input(method_prefix: str, version: str, book: str, chapter: str, verses: str):
@@ -110,11 +111,11 @@ def entry_point():
     # Allow input file as an optional argument
     parser.add_argument('--file', '-f', type=str, help="Path to input file containing multiple passage requests", required=False)
     
-    # Manual input details
-    parser.add_argument('--method', '-p', type=str, help="Method prefix: 'GPT' or 'BG'", required=True)
-    parser.add_argument('--version', '-v', type=str, help="Bible version for BibleGateway fetch", required=True)
-    parser.add_argument('--book', '-b', type=str, help="Book name (e.g., 'Genesis')", required=True)
-    parser.add_argument('--chapter', '-c', type=str, help="Chapter number", required=True)
+    # Manual input details (required if no file is provided)
+    parser.add_argument('--method', '-p', type=str, help="Method prefix: 'GPT' or 'BG'", required=not '--file' in os.sys.argv)
+    parser.add_argument('--version', '-v', type=str, help="Bible version for BibleGateway fetch", required=not '--file' in os.sys.argv)
+    parser.add_argument('--book', '-b', type=str, help="Book name (e.g., 'Genesis')", required=not '--file' in os.sys.argv)
+    parser.add_argument('--chapter', '-c', type=str, help="Chapter number", required=not '--file' in os.sys.argv)
     parser.add_argument('--verses', '-vs', type=str, help="Comma-separated verse numbers (e.g., '1,2,3' or '1-5')", required=False)
 
     args = parser.parse_args()

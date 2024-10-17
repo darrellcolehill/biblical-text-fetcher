@@ -12,7 +12,7 @@ openai.api_key = key
 
 client = openai.OpenAI()
 
-def chatgpt_fetch(version, book, chapter, verses, model="gpt-3.5-turbo"):
+def chatgpt_fetch(version, book, chapter, verses = None, model="gpt-3.5-turbo"):
     if verses is not None and len(verses) > 0:
         verseString = ', '.join(map(str, verses))
         prompt = f"Get {book} chapter {chapter} verses {verseString} from the {version}. Give me only the plain-text with no verse markers and no chapter markers"
