@@ -1,7 +1,7 @@
 # Biblical-text-Fetcher
 Fetches specified biblical passages from specified ChatGPT or BibleGateway and downloads the result as a .txt file.
 
-## Setup Tutorial Video
+## Setup Tutorial
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/88Zg0OQ0gCc/0.jpg)](http://www.youtube.com/watch?v=88Zg0OQ0gCc "Setup Tutorial Video")
 
 ## Verse Input Specification
