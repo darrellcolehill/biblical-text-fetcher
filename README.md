@@ -1,4 +1,4 @@
-# Biblical-text-Fetcher
+# Biblical-Text-Fetcher
 This is a hackathon project where the gloal is to be able to fetch specified biblical passages from ChatGPT or BibleGateway and download the result as a .txt file.
 
 ## Setup Tutorial
