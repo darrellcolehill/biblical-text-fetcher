@@ -82,4 +82,5 @@ BG NIV Genesis 1
 4) Run the following command: ```npm run dev```
 5) Open a new terminal window
 6) Change directory to demo/server
-7) Run the following command: ```python index.py```
+7) Run the following command: ```pip install -r requirements.txt```
+8) Run the following command: ```python index.py```
